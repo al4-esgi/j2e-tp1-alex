@@ -1,0 +1,325 @@
+### ============================================
+### API REST - Tests avec REST Client / Thunder Client
+### TP1 - Gestion de Produits
+### ============================================
+
+### Variables
+@jakartaBaseUrl = http://localhost:8080/products-api/api
+@springBaseUrl = http://localhost:8081/api
+@contentType = application/json
+
+### ============================================
+### JAKARTA EE TESTS (Port 8080)
+### ============================================
+
+### 1. Jakarta - GET tous les produits
+GET {{jakartaBaseUrl}}/products
+Accept: {{contentType}}
+
+###
+
+### 2. Jakarta - GET produit par ID (remplacer {id} par un vrai ID)
+GET {{jakartaBaseUrl}}/products/{id}
+Accept: {{contentType}}
+
+###
+
+### 3. Jakarta - GET produits par catégorie
+GET {{jakartaBaseUrl}}/products?category=Informatique
+Accept: {{contentType}}
+
+###
+
+### 4. Jakarta - POST créer un nouveau produit
+POST {{jakartaBaseUrl}}/products
+Content-Type: {{contentType}}
+
+{
+  "name": "MacBook Pro M3",
+  "description": "Ordinateur portable professionnel Apple avec puce M3",
+  "price": 2499.99,
+  "category": "Informatique",
+  "stock": 10
+}
+
+###
+
+### 5. Jakarta - PUT mettre à jour un produit (remplacer {id})
+PUT {{jakartaBaseUrl}}/products/{id}
+Content-Type: {{contentType}}
+
+{
+  "name": "MacBook Pro M3 - Édition Spéciale",
+  "description": "Ordinateur portable professionnel Apple - Mise à jour",
+  "price": 2399.99,
+  "category": "Informatique",
+  "stock": 15
+}
+
+###
+
+### 6. Jakarta - PATCH ajuster le stock (remplacer {id})
+PATCH {{jakartaBaseUrl}}/products/{id}/stock
+Content-Type: {{contentType}}
+
+{
+  "quantity": -3
+}
+
+###
+
+### 7. Jakarta - DELETE supprimer un produit (remplacer {id})
+DELETE {{jakartaBaseUrl}}/products/{id}
+
+###
+
+### 8. Jakarta - GET compter les produits
+GET {{jakartaBaseUrl}}/products/count
+Accept: {{contentType}}
+
+###
+
+### ============================================
+### SPRING BOOT TESTS (Port 8081)
+### ============================================
+
+### 9. Spring - GET tous les produits
+GET {{springBaseUrl}}/products
+Accept: {{contentType}}
+
+###
+
+### 10. Spring - GET produit par ID (remplacer {id} par un vrai ID)
+GET {{springBaseUrl}}/products/{id}
+Accept: {{contentType}}
+
+###
+
+### 11. Spring - GET produits par catégorie
+GET {{springBaseUrl}}/products?category=Téléphonie
+Accept: {{contentType}}
+
+###
+
+### 12. Spring - POST créer un nouveau produit
+POST {{springBaseUrl}}/products
+Content-Type: {{contentType}}
+
+{
+  "name": "Samsung Galaxy S24 Ultra",
+  "description": "Smartphone Android haut de gamme avec S Pen",
+  "price": 1399.99,
+  "category": "Téléphonie",
+  "stock": 20
+}
+
+###
+
+### 13. Spring - POST créer un produit (avec validation échouée - prix négatif)
+POST {{springBaseUrl}}/products
+Content-Type: {{contentType}}
+
+{
+  "name": "Produit Test",
+  "description": "Ceci devrait échouer",
+  "price": -100,
+  "category": "Test",
+  "stock": 5
+}
+
+###
+
+### 14. Spring - POST créer un produit (avec validation échouée - nom vide)
+POST {{springBaseUrl}}/products
+Content-Type: {{contentType}}
+
+{
+  "name": "",
+  "description": "Nom vide - devrait échouer",
+  "price": 99.99,
+  "category": "Test",
+  "stock": 5
+}
+
+###
+
+### 15. Spring - PUT mettre à jour un produit (remplacer {id})
+PUT {{springBaseUrl}}/products/{id}
+Content-Type: {{contentType}}
+
+{
+  "name": "Samsung Galaxy S24 Ultra - 512GB",
+  "description": "Smartphone Android haut de gamme avec S Pen et 512GB de stockage",
+  "price": 1599.99,
+  "category": "Téléphonie",
+  "stock": 18
+}
+
+###
+
+### 16. Spring - PATCH augmenter le stock (remplacer {id})
+PATCH {{springBaseUrl}}/products/{id}/stock
+Content-Type: {{contentType}}
+
+{
+  "quantity": 10
+}
+
+###
+
+### 17. Spring - PATCH diminuer le stock (remplacer {id})
+PATCH {{springBaseUrl}}/products/{id}/stock
+Content-Type: {{contentType}}
+
+{
+  "quantity": -5
+}
+
+###
+
+### 18. Spring - DELETE supprimer un produit (remplacer {id})
+DELETE {{springBaseUrl}}/products/{id}
+
+###
+
+### 19. Spring - GET compter les produits
+GET {{springBaseUrl}}/products/count
+Accept: {{contentType}}
+
+###
+
+### ============================================
+### TESTS D'ERREURS
+### ============================================
+
+### 20. GET produit inexistant (404 attendu)
+GET {{springBaseUrl}}/products/id-inexistant-12345
+Accept: {{contentType}}
+
+###
+
+### 21. PUT sur produit inexistant (404 attendu)
+PUT {{springBaseUrl}}/products/id-inexistant-12345
+Content-Type: {{contentType}}
+
+{
+  "name": "Produit Inexistant",
+  "description": "Ceci devrait retourner 404",
+  "price": 99.99,
+  "category": "Test",
+  "stock": 5
+}
+
+###
+
+### 22. DELETE produit inexistant (404 attendu)
+DELETE {{springBaseUrl}}/products/id-inexistant-12345
+
+###
+
+### 23. PATCH stock avec quantité excessive (devrait échouer si stock < quantité)
+PATCH {{springBaseUrl}}/products/{id}/stock
+Content-Type: {{contentType}}
+
+{
+  "quantity": -1000
+}
+
+###
+
+### ============================================
+### TESTS DE FILTRE ET RECHERCHE
+### ============================================
+
+### 24. Filtrer par catégorie "Audio"
+GET {{springBaseUrl}}/products?category=Audio
+Accept: {{contentType}}
+
+###
+
+### 25. Filtrer par catégorie "Mobilier"
+GET {{springBaseUrl}}/products?category=Mobilier
+Accept: {{contentType}}
+
+###
+
+### 26. Filtrer par catégorie inexistante (devrait retourner liste vide)
+GET {{springBaseUrl}}/products?category=CategorieInexistante
+Accept: {{contentType}}
+
+###
+
+### ============================================
+### TESTS DE CRÉATION MULTIPLES
+### ============================================
+
+### 27. Créer produit Audio
+POST {{springBaseUrl}}/products
+Content-Type: {{contentType}}
+
+{
+  "name": "Bose QuietComfort 45",
+  "description": "Casque audio à réduction de bruit",
+  "price": 329.99,
+  "category": "Audio",
+  "stock": 25
+}
+
+###
+
+### 28. Créer produit Mobilier
+POST {{springBaseUrl}}/products
+Content-Type: {{contentType}}
+
+{
+  "name": "Bureau Assis-Debout Électrique",
+  "description": "Bureau réglable en hauteur avec moteur électrique",
+  "price": 599.99,
+  "category": "Mobilier",
+  "stock": 8
+}
+
+###
+
+### 29. Créer produit Gaming
+POST {{springBaseUrl}}/products
+Content-Type: {{contentType}}
+
+{
+  "name": "PlayStation 5",
+  "description": "Console de jeu nouvelle génération Sony",
+  "price": 549.99,
+  "category": "Gaming",
+  "stock": 12
+}
+
+###
+
+### ============================================
+### INSTRUCTIONS
+### ============================================
+###
+### Comment utiliser ce fichier :
+###
+### 1. VS Code avec extension "REST Client" :
+###    - Installer l'extension "REST Client" de Huachao Mao
+###    - Ouvrir ce fichier
+###    - Cliquer sur "Send Request" au-dessus de chaque requête
+###
+### 2. Thunder Client (VS Code) :
+###    - Installer l'extension "Thunder Client"
+###    - Importer ce fichier ou copier les requêtes manuellement
+###
+### 3. Postman / Insomnia :
+###    - Copier les requêtes et les adapter au format de l'outil
+###
+### 4. curl (ligne de commande) :
+###    - Convertir les requêtes en commandes curl
+###
+### IMPORTANT :
+### - Remplacez {id} par un vrai ID de produit récupéré via GET
+### - Assurez-vous que les serveurs sont démarrés :
+###   * Jakarta EE : docker compose up -d
+###   * Spring Boot : mvn spring-boot:run
+###
+### ============================================

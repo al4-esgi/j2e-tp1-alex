@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="https://jakarta.ee/xml/ns/jakartaee"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+                           https://jakarta.ee/xml/ns/jakartaee/beans_3_0.xsd"
+       version="3.0"
+       bean-discovery-mode="all">
+    <!--
+        beans.xml - Configuration CDI (Contexts and Dependency Injection)
+
+        bean-discovery-mode="all" :
+        Active l'injection de dépendances pour tous les beans de l'application
+        CDI scannera automatiquement toutes les classes avec @ApplicationScoped, @Inject, etc.
+    -->
+</beans>

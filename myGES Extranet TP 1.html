@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>TP1 &colon; Architecture en Couches et Premi&egrave;re API REST</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+/* From extension jebbs.markdown-extended */
+@font-face {
+  font-family: "Material Icons";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Material Icons"), local("MaterialIcons-Regular"), url("data:application/x-font-woff;charset=utf-8;base64,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") format("woff");
+}
+
+.admonition {
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14), 0 1px 5px 0 rgba(0, 0, 0, .12), 0 3px 1px -2px rgba(0, 0, 0, .2);
+  position: relative;
+  margin: 1.5625em 0;
+  padding: 0 1.2rem;
+  border-left: .4rem solid rgba(68, 138, 255, .8);
+  border-radius: .2rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  overflow: auto;
+}
+
+.admonition>p {
+  margin-top: .8rem;
+}
+
+.admonition>.admonition-title {
+  margin: 0 -1.2rem;
+  padding: .8rem 1.2rem .8rem 3.6rem;
+  border-bottom: 1px solid rgba(68, 138, 255, .2);
+  background-color: rgba(68, 138, 255, .1);
+  font-weight: 700;
+}
+
+.admonition>.admonition-title:before {
+  position: absolute;
+  left: 1.2rem;
+  font-size: 1.5rem;
+  color: rgba(68, 138, 255, .8);
+  content: "\E3C9";
+}
+
+.admonition>.admonition-title:before {
+  font-family: Material Icons;
+  font-style: normal;
+  font-variant: normal;
+  font-weight: 400;
+  line-height: 2rem;
+  text-transform: none;
+  white-space: nowrap;
+  speak: none;
+  word-wrap: normal;
+  direction: ltr;
+}
+
+.admonition.summary,
+.admonition.abstract,
+.admonition.tldr {
+  border-left-color: rgba(0, 176, 255, .8);
+}
+
+.admonition.summary>.admonition-title,
+.admonition.abstract>.admonition-title,
+.admonition.tldr>.admonition-title {
+  background-color: rgba(0, 176, 255, .1);
+  border-bottom-color: rgba(0, 176, 255, .2);
+}
+
+.admonition.summary>.admonition-title:before,
+.admonition.abstract>.admonition-title:before,
+.admonition.tldr>.admonition-title:before {
+  color: rgba(0, 176, 255, 1);
+  ;
+  content: "\E8D2";
+}
+
+.admonition.hint,
+.admonition.tip {
+  border-left-color: rgba(0, 191, 165, .8);
+}
+
+.admonition.hint>.admonition-title,
+.admonition.tip>.admonition-title {
+  background-color: rgba(0, 191, 165, .1);
+  border-bottom-color: rgba(0, 191, 165, .2);
+}
+
+.admonition.hint>.admonition-title:before,
+.admonition.tip>.admonition-title:before {
+  color: rgba(0, 191, 165, 1);
+  content: "\E80E";
+}
+
+.admonition.info,
+.admonition.todo {
+  border-left-color: rgba(0, 184, 212, .8);
+}
+
+.admonition.info>.admonition-title,
+.admonition.todo>.admonition-title {
+  background-color: rgba(0, 184, 212, .1);
+  border-bottom-color: rgba(0, 184, 212, .2);
+}
+
+.admonition.info>.admonition-title:before,
+.admonition.todo>.admonition-title:before {
+  color: rgba(0, 184, 212, 1);
+  ;
+  content: "\E88E";
+}
+
+.admonition.success,
+.admonition.check,
+.admonition.done {
+  border-left-color: rgba(0, 200, 83, .8);
+}
+
+.admonition.success>.admonition-title,
+.admonition.check>.admonition-title,
+.admonition.done>.admonition-title {
+  background-color: rgba(0, 200, 83, .1);
+  border-bottom-color: rgba(0, 200, 83, .2);
+}
+
+.admonition.success>.admonition-title:before,
+.admonition.check>.admonition-title:before,
+.admonition.done>.admonition-title:before {
+  color: rgba(0, 200, 83, 1);
+  ;
+  content: "\E876";
+}
+
+.admonition.question,
+.admonition.help,
+.admonition.faq {
+  border-left-color: rgba(100, 221, 23, .8);
+}
+
+.admonition.question>.admonition-title,
+.admonition.help>.admonition-title,
+.admonition.faq>.admonition-title {
+  background-color: rgba(100, 221, 23, .1);
+  border-bottom-color: rgba(100, 221, 23, .2);
+}
+
+.admonition.question>.admonition-title:before,
+.admonition.help>.admonition-title:before,
+.admonition.faq>.admonition-title:before {
+  color: rgba(100, 221, 23, 1);
+  ;
+  content: "\E887";
+}
+
+.admonition.warning,
+.admonition.attention,
+.admonition.caution {
+  border-left-color: rgba(255, 145, 0, .8);
+}
+
+.admonition.warning>.admonition-title,
+.admonition.attention>.admonition-title,
+.admonition.caution>.admonition-title {
+  background-color: rgba(255, 145, 0, .1);
+  border-bottom-color: rgba(255, 145, 0, .2);
+}
+
+.admonition.attention>.admonition-title:before {
+  color: rgba(255, 145, 0, 1);
+  content: "\E417";
+}
+
+.admonition.warning>.admonition-title:before,
+.admonition.caution>.admonition-title:before {
+  color: rgba(255, 145, 0, 1);
+  content: "\E002";
+}
+
+.admonition.failure,
+.admonition.fail,
+.admonition.missing {
+  border-left-color: rgba(255, 82, 82, .8);
+}
+
+.admonition.failure>.admonition-title,
+.admonition.fail>.admonition-title,
+.admonition.missing>.admonition-title {
+  background-color: rgba(255, 82, 82, .1);
+  border-bottom-color: rgba(255, 82, 82, .2);
+}
+
+.admonition.failure>.admonition-title:before,
+.admonition.fail>.admonition-title:before,
+.admonition.missing>.admonition-title:before {
+  color: rgba(255, 82, 82, 1);
+  ;
+  content: "\E14C";
+}
+
+.admonition.danger,
+.admonition.error,
+.admonition.bug {
+  border-left-color: rgba(255, 23, 68, .8);
+}
+
+.admonition.danger>.admonition-title,
+.admonition.error>.admonition-title,
+.admonition.bug>.admonition-title {
+  background-color: rgba(255, 23, 68, .1);
+  border-bottom-color: rgba(255, 23, 68, .2);
+}
+
+.admonition.danger>.admonition-title:before {
+  color: rgba(255, 23, 68, 1);
+  content: "\E3E7";
+}
+
+.admonition.error>.admonition-title:before {
+  color: rgba(255, 23, 68, 1);
+  content: "\E14C";
+}
+
+.admonition.bug>.admonition-title:before {
+  color: rgba(255, 23, 68, 1);
+  content: "\E868";
+}
+
+.admonition.example,
+.admonition.snippet {
+  border-left-color: rgba(0, 184, 212, .8);
+}
+
+.admonition.example>.admonition-title,
+.admonition.snippet>.admonition-title {
+  background-color: rgba(0, 184, 212, .1);
+  border-bottom-color: rgba(0, 184, 212, .2);
+}
+
+.admonition.example>.admonition-title:before,
+.admonition.snippet>.admonition-title:before {
+  color: rgba(0, 184, 212, 1);
+  ;
+  content: "\E242";
+}
+
+.admonition.quote,
+.admonition.cite {
+  border-left-color: rgba(158, 158, 158, .8);
+}
+
+.admonition.quote>.admonition-title,
+.admonition.cite>.admonition-title {
+  background-color: rgba(158, 158, 158, .1);
+  border-bottom-color: rgba(158, 158, 158, .2);
+}
+
+.admonition.quote>.admonition-title:before,
+.admonition.cite>.admonition-title:before {
+  color: rgba(158, 158, 158, 1);
+  ;
+  content: "\E244";
+}
+.vscode-light kbd,
+.vscode-dark kbd,
+.vscode-high-contrast kbd {
+  display: inline-block;
+  padding: 3px 5px;
+  font: 11px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  line-height: 10px;
+  vertical-align: middle;
+  border: solid 1px #d1d5da;
+  border-bottom-color: #c6cbd1;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 #c6cbd1;
+}
+
+.vscode-light kbd {
+  color: #444d56;
+  background-color: #fafbfc;
+}
+</style>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="tp1--architecture-en-couches-et-première-api-rest">TP1 : Architecture en Couches et Première API REST</h1>
+<p><strong>Durée estimée</strong> : 1h30<br>
+<strong>Niveau</strong> : Intermédiaire</p>
+<!-- **Prérequis** : Avoir suivi le Cours 2 sur l'architecture en couches -->
+<hr>
+<h2 id="-objectifs-du-tp">🎯 Objectifs du TP</h2>
+<p>À l'issue de ce TP, vous serez capable de :</p>
+<ul>
+<li>Structurer une application selon une architecture en couches claire</li>
+<li>Appliquer le pattern Repository avec interface</li>
+<li>Utiliser l'injection de dépendances (CDI ou Spring)</li>
+<li>Créer une API REST respectant les principes REST</li>
+<li>Comparer les approches Jakarta EE et Spring Boot</li>
+</ul>
+<hr>
+<h2 id="-contexte">📋 Contexte</h2>
+<p>Vous allez développer une API REST de gestion de produits pour une boutique en ligne. Cette API permettra de créer, lire, mettre à jour et supprimer des produits.</p>
+<p><strong>Important</strong> : Dans un premier temps, vous utiliserez un stockage <strong>en mémoire</strong> (pas de base de données) pour vous concentrer sur l'architecture. La section BONUS vous guidera pour ajouter la persistence avec JPA.</p>
+<hr>
+<h2 id="️-architecture-cible">🏗️ Architecture Cible</h2>
+<p>Votre application doit respecter l'architecture en 4 couches vue en cours :</p>
+<pre><code>├── Presentation Layer (Resource/Controller)
+│   └── ProductResource.java / ProductController.java
+│
+├── Application Layer (Service)
+│   └── ProductService.java
+│
+├── Infrastructure Layer (Repository)
+│   ├── IProductRepository.java (interface)
+│   └── InMemoryProductRepository.java (implémentation)
+│
+└── Domain Layer (Model)
+    └── Product.java
+</code></pre>
+<h3 id="règles-importantes">Règles Importantes</h3>
+<ol>
+<li><strong>Respect des dépendances</strong> : Presentation → Application → Infrastructure</li>
+<li><strong>Utilisation d'interface</strong> : Le Service dépend de <code>IProductRepository</code>, pas de l'implémentation</li>
+<li><strong>Injection de dépendances</strong> : Pas de <code>new</code> dans les classes (sauf le modèle)</li>
+<li><strong>Responsabilités séparées</strong> : Chaque couche a une responsabilité unique</li>
+</ol>
+<hr>
+<h2 id="-partie-1--mise-en-place-de-lenvironnement-20-min">📝 Partie 1 : Mise en Place de l'Environnement (20 min)</h2>
+<h3 id="objectif">Objectif</h3>
+<p>Installer et configurer tous les outils nécessaires</p>
+<h3 id="tâches">Tâches</h3>
+<h4 id="11-installation-sdkman-et-java">1.1 Installation SDKMAN et Java</h4>
+<pre><code class="language-bash"><span class="hljs-comment"># Installer SDKMAN</span>
+curl -s <span class="hljs-string">&quot;https://get.sdkman.io&quot;</span> | bash
+<span class="hljs-built_in">source</span> <span class="hljs-string">&quot;<span class="hljs-variable">$HOME</span>/.sdkman/bin/sdkman-init.sh&quot;</span>
+
+<span class="hljs-comment"># Installer Java 17</span>
+sdk install java 17.0.10-tem
+sdk default java 17.0.10-tem
+
+<span class="hljs-comment"># Installer Maven</span>
+sdk install maven 3.9.6
+
+<span class="hljs-comment"># Vérifier</span>
+java -version
+mvn -version
+</code></pre>
+<h4 id="12-configuration-vs-code">1.2 Configuration VS Code</h4>
+<p>Installer les extensions suivantes (via Ctrl+Shift+X) :</p>
+<ul>
+<li>Extension Pack for Java (Microsoft)</li>
+<li>Spring Boot Extension Pack (VMware)</li>
+<li>Community Server Connectors (Red Hat)</li>
+<li>Thunder Client ou REST Client</li>
+</ul>
+<h4 id="13-docker-postgresql">1.3 Docker PostgreSQL</h4>
+<pre><code class="language-bash"><span class="hljs-comment"># Créer le fichier docker-compose-db.yml</span>
+<span class="hljs-comment"># Lancer PostgreSQL (pour la partie BONUS)</span>
+docker compose -f docker-compose-db.yml up -d
+</code></pre>
+<p><strong>Livrable 1</strong> : Capture d'écran montrant les versions de Java, Maven et Docker</p>
+<hr>
+<h2 id="-partie-2--application-jakarta-ee-50-min">📝 Partie 2 : Application Jakarta EE (50 min)</h2>
+<h3 id="objectif-1">Objectif</h3>
+<p>Créer une API REST avec Jakarta EE en respectant l'architecture en couches</p>
+<h3 id="21-création-du-projet-maven">2.1 Création du Projet Maven</h3>
+<p><strong>Consignes</strong> :</p>
+<ol>
+<li>Créez un projet Maven avec le packaging WAR</li>
+<li>Structure des packages : <code>com.formation.products.{model, repository, service, resource}</code></li>
+<li>Configurez le <code>pom.xml</code> avec Jakarta EE 10</li>
+</ol>
+<p><strong>Questions à se poser</strong> :</p>
+<ul>
+<li>Quelle dépendance Maven pour Jakarta EE ?</li>
+<li>Quel scope utiliser (<code>provided</code> ou <code>compile</code>) ?</li>
+<li>Pourquoi ce scope ?</li>
+</ul>
+<h3 id="22-couche-domain--le-modèle-product">2.2 Couche Domain : Le Modèle Product</h3>
+<p><strong>Consignes</strong> :
+Créez la classe <code>Product</code> avec les attributs suivants :</p>
+<ul>
+<li><code>id</code> (String, généré automatiquement)</li>
+<li><code>name</code> (String, obligatoire)</li>
+<li><code>description</code> (String, optionnel)</li>
+<li><code>price</code> (BigDecimal, obligatoire et positif)</li>
+<li><code>category</code> (String, obligatoire)</li>
+<li><code>stock</code> (int, &gt;= 0)</li>
+<li><code>createdAt</code> (LocalDateTime, auto-généré)</li>
+</ul>
+<p><strong>Réflexions</strong> :</p>
+<ul>
+<li>Comment générer automatiquement un ID unique ?</li>
+<li>Comment initialiser automatiquement <code>createdAt</code> ?</li>
+<li>Faut-il des validations dès maintenant ? (Conseil : non, on les ajoutera plus tard)</li>
+</ul>
+<p><strong>Indices</strong> :</p>
+<ul>
+<li>Utilisez <code>UUID.randomUUID().toString()</code> pour l'ID</li>
+<li>Initialisez <code>createdAt</code> dans le constructeur</li>
+</ul>
+<h3 id="23-couche-infrastructure--le-repository">2.3 Couche Infrastructure : Le Repository</h3>
+<h4 id="231-interface-iproductrepository">2.3.1 Interface IProductRepository</h4>
+<p><strong>Consignes</strong> :
+Créez l'interface <code>IProductRepository</code> avec les méthodes :</p>
+<ul>
+<li><code>Product save(Product product)</code> - Crée ou met à jour</li>
+<li><code>Optional&lt;Product&gt; findById(String id)</code> - Recherche par ID</li>
+<li><code>List&lt;Product&gt; findAll()</code> - Liste tous les produits</li>
+<li><code>List&lt;Product&gt; findByCategory(String category)</code> - Filtre par catégorie</li>
+<li><code>void delete(String id)</code> - Supprime un produit</li>
+<li><code>boolean exists(String id)</code> - Teste l'existence</li>
+<li><code>long count()</code> - Compte les produits</li>
+</ul>
+<p><strong>Réflexions</strong> :</p>
+<ul>
+<li>Pourquoi utiliser <code>Optional&lt;Product&gt;</code> au lieu de <code>Product</code> pour findById ?</li>
+<li>Pourquoi cette interface est-elle importante pour respecter SOLID ?</li>
+</ul>
+<h4 id="232-implémentation-inmemoryproductrepository">2.3.2 Implémentation InMemoryProductRepository</h4>
+<p><strong>Consignes</strong> :
+Implémentez <code>InMemoryProductRepository</code> qui :</p>
+<ol>
+<li>Implémente <code>IProductRepository</code></li>
+<li>Stocke les produits dans une <code>ConcurrentHashMap&lt;String, Product&gt;</code></li>
+<li>Est annotée <code>@ApplicationScoped</code> (Jakarta EE)</li>
+<li>Initialise quelques produits de test dans le constructeur</li>
+</ol>
+<p><strong>Réflexions</strong> :</p>
+<ul>
+<li>Pourquoi <code>ConcurrentHashMap</code> et pas <code>HashMap</code> ?</li>
+<li>Que fait l'annotation <code>@ApplicationScoped</code> ?</li>
+<li>Comment gérer la création vs la mise à jour dans <code>save()</code> ?</li>
+</ul>
+<p><strong>Indices pour save()</strong> :</p>
+<pre><code class="language-java"><span class="hljs-comment">// Si l&#x27;ID est null ou vide, c&#x27;est une création</span>
+<span class="hljs-keyword">if</span> (product.getId() == <span class="hljs-literal">null</span> || product.getId().isEmpty()) {
+    product.setId(UUID.randomUUID().toString());
+}
+products.put(product.getId(), product);
+<span class="hljs-keyword">return</span> product;
+</code></pre>
+<h3 id="24-couche-application--le-service">2.4 Couche Application : Le Service</h3>
+<p><strong>Consignes</strong> :
+Créez <code>ProductService</code> qui :</p>
+<ol>
+<li>Est annotée <code>@ApplicationScoped</code></li>
+<li>Injecte <code>IProductRepository</code> avec <code>@Inject</code></li>
+<li>Implémente les méthodes :
+<ul>
+<li><code>Product createProduct(Product product)</code> - avec validation basique</li>
+<li><code>Optional&lt;Product&gt; getProduct(String id)</code></li>
+<li><code>List&lt;Product&gt; getAllProducts()</code></li>
+<li><code>List&lt;Product&gt; getProductsByCategory(String category)</code></li>
+<li><code>Product updateProduct(String id, Product updatedProduct)</code></li>
+<li><code>void deleteProduct(String id)</code></li>
+<li><code>void updateStock(String id, int quantity)</code> - ajuste le stock</li>
+</ul>
+</li>
+</ol>
+<p><strong>Validations dans createProduct</strong> :</p>
+<ul>
+<li>Vérifier que name n'est pas vide</li>
+<li>Vérifier que price est positif</li>
+<li>Lancer <code>IllegalArgumentException</code> si invalide</li>
+</ul>
+<p><strong>Réflexions</strong> :</p>
+<ul>
+<li>Pourquoi injecter l'interface et pas la classe concrète ?</li>
+<li>Que se passe-t-il si on essaie de mettre à jour un produit inexistant ?</li>
+<li>Comment gérer les erreurs proprement ?</li>
+</ul>
+<h3 id="25-couche-presentation--la-resource-rest">2.5 Couche Presentation : La Resource REST</h3>
+<p><strong>Consignes</strong> :
+Créez <code>ProductResource</code> qui :</p>
+<ol>
+<li>Est annotée <code>@Path(&quot;/products&quot;)</code></li>
+<li>Injecte <code>ProductService</code> avec <code>@Inject</code></li>
+<li>Injecte <code>UriInfo</code> avec <code>@Context</code> (pour construire les URIs)</li>
+<li>Implémente les endpoints :</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Méthode HTTP</th>
+<th>Path</th>
+<th>Action</th>
+<th>Code Succès</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/products</code></td>
+<td>Liste tous</td>
+<td>200</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/products?category=X</code></td>
+<td>Filtre par catégorie</td>
+<td>200</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/products/{id}</code></td>
+<td>Récupère un produit</td>
+<td>200 ou 404</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/products</code></td>
+<td>Crée un produit</td>
+<td>201 + Location header</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td><code>/products/{id}</code></td>
+<td>Met à jour</td>
+<td>200 ou 404</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/products/{id}/stock</code></td>
+<td>Ajuste le stock</td>
+<td>200 ou 404</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/products/{id}</code></td>
+<td>Supprime</td>
+<td>204</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Annotations importantes</strong> :</p>
+<ul>
+<li><code>@GET</code>, <code>@POST</code>, <code>@PUT</code>, <code>@PATCH</code>, <code>@DELETE</code></li>
+<li><code>@Path(&quot;/{id}&quot;)</code></li>
+<li><code>@PathParam(&quot;id&quot;)</code></li>
+<li><code>@QueryParam(&quot;category&quot;)</code></li>
+<li><code>@Produces(MediaType.APPLICATION_JSON)</code></li>
+<li><code>@Consumes(MediaType.APPLICATION_JSON)</code></li>
+</ul>
+<p><strong>Gestion des erreurs</strong> :
+Pour les endpoints retournant un produit, utilisez ce pattern :</p>
+<pre><code class="language-java"><span class="hljs-keyword">return</span> productService.getProduct(id)
+    .map(product -&gt; Response.ok(product).build())
+    .orElse(Response.status(Response.Status.NOT_FOUND)
+            .entity(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ErrorMessage</span>(<span class="hljs-string">&quot;Produit non trouvé&quot;</span>))
+            .build());
+</code></pre>
+<p><strong>Créer une classe interne pour les erreurs</strong> :</p>
+<pre><code class="language-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ErrorMessage</span> {
+    <span class="hljs-keyword">private</span> String message;
+    <span class="hljs-comment">// constructeur, getter, setter</span>
+}
+</code></pre>
+<p><strong>Pour le POST avec Location header</strong> :</p>
+<pre><code class="language-java"><span class="hljs-type">URI</span> <span class="hljs-variable">location</span> <span class="hljs-operator">=</span> uriInfo.getAbsolutePathBuilder()
+                      .path(created.getId())
+                      .build();
+<span class="hljs-keyword">return</span> Response.created(location).entity(created).build();
+</code></pre>
+<h3 id="26-configuration-jax-rs">2.6 Configuration JAX-RS</h3>
+<p><strong>Consignes</strong> :
+Créez <code>ApplicationConfig</code> :</p>
+<pre><code class="language-java"><span class="hljs-meta">@ApplicationPath(&quot;/api&quot;)</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ApplicationConfig</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Application</span> {
+    <span class="hljs-comment">// Classe vide suffisant pour activer JAX-RS</span>
+}
+</code></pre>
+<h3 id="27-déploiement-avec-wildfly">2.7 Déploiement avec WildFly</h3>
+<p><strong>Consignes</strong> :</p>
+<ol>
+<li>Compilez avec <code>mvn clean package</code></li>
+<li>Créez un <code>Dockerfile</code> pour WildFly</li>
+<li>Créez un <code>docker-compose.yml</code></li>
+<li>Déployez et testez</li>
+</ol>
+<p><strong>Dockerfile suggéré</strong> :</p>
+<pre><code class="language-dockerfile"><span class="hljs-keyword">FROM</span> quay.io/wildfly/wildfly:<span class="hljs-number">31.0</span>.<span class="hljs-number">0</span>.Final-jdk17
+<span class="hljs-keyword">COPY</span><span class="language-bash"> target/votre-app.war /opt/jboss/wildfly/standalone/deployments/</span>
+<span class="hljs-keyword">EXPOSE</span> <span class="hljs-number">8080</span>
+<span class="hljs-keyword">CMD</span><span class="language-bash"> [<span class="hljs-string">&quot;/opt/jboss/wildfly/bin/standalone.sh&quot;</span>, <span class="hljs-string">&quot;-b&quot;</span>, <span class="hljs-string">&quot;0.0.0.0&quot;</span>]</span>
+</code></pre>
+<h3 id="28-tests-avec-thunder-client">2.8 Tests avec Thunder Client</h3>
+<p><strong>Consignes</strong> :
+Testez tous les endpoints et documentez les résultats</p>
+<p><strong>Exemples de tests</strong> :</p>
+<ol>
+<li>GET <code>/api/products</code> - Doit retourner les produits de test</li>
+<li>POST <code>/api/products</code> avec un JSON valide</li>
+<li>GET <code>/api/products/{id}</code> avec un ID existant</li>
+<li>GET <code>/api/products/{id}</code> avec un ID inexistant (404 attendu)</li>
+<li>PUT pour mettre à jour</li>
+<li>DELETE pour supprimer</li>
+</ol>
+<p><strong>Livrable 2</strong> : Captures d'écran des tests Thunder Client (minimum 5 endpoints)</p>
+<hr>
+<h2 id="-partie-3--application-spring-boot-40-min">📝 Partie 3 : Application Spring Boot (40 min)</h2>
+<h3 id="objectif-2">Objectif</h3>
+<p>Créer la même API avec Spring Boot et comparer</p>
+<h3 id="31-création-du-projet">3.1 Création du Projet</h3>
+<p><strong>Option 1 : Via VS Code</strong></p>
+<ul>
+<li>Palette : <code>Spring Initializr: Create Maven Project</code></li>
+<li>Dependencies : Spring Web, DevTools, Validation</li>
+</ul>
+<p><strong>Option 2 : Via curl</strong></p>
+<pre><code class="language-bash">curl https://start.spring.io/starter.zip \
+  -d dependencies=web,devtools,validation \
+  -d <span class="hljs-built_in">type</span>=maven-project \
+  -d bootVersion=3.2.2 \
+  -d javaVersion=17 \
+  -d groupId=com.formation \
+  -d artifactId=spring-products-api \
+  -o spring-products-api.zip
+</code></pre>
+<h3 id="32-configuration">3.2 Configuration</h3>
+<p><strong>Consignes</strong> :
+Dans <code>application.properties</code>, configurez :</p>
+<pre><code class="language-properties"><span class="hljs-attr">server.port</span>=<span class="hljs-string">8081</span>
+<span class="hljs-attr">spring.application.name</span>=<span class="hljs-string">spring-products-api</span>
+<span class="hljs-attr">logging.level.com.formation</span>=<span class="hljs-string">DEBUG</span>
+</code></pre>
+<h3 id="33-implémentation-des-couches">3.3 Implémentation des Couches</h3>
+<p><strong>Consignes</strong> :
+Recréez les mêmes couches qu'avec Jakarta EE, mais avec les annotations Spring :</p>
+<table>
+<thead>
+<tr>
+<th>Jakarta EE</th>
+<th>Spring Boot</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@ApplicationScoped</code></td>
+<td><code>@Service</code> ou <code>@Repository</code></td>
+<td>Marqueur de bean</td>
+</tr>
+<tr>
+<td><code>@Inject</code></td>
+<td><code>@Autowired</code> ou constructeur</td>
+<td>Injection</td>
+</tr>
+<tr>
+<td><code>@Path</code></td>
+<td><code>@RequestMapping</code></td>
+<td>Route</td>
+</tr>
+<tr>
+<td><code>@GET</code></td>
+<td><code>@GetMapping</code></td>
+<td>HTTP GET</td>
+</tr>
+<tr>
+<td><code>@POST</code></td>
+<td><code>@PostMapping</code></td>
+<td>HTTP POST</td>
+</tr>
+<tr>
+<td><code>@Produces</code></td>
+<td>(automatique)</td>
+<td>Content-Type</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Spécificités Spring</strong> :</p>
+<ol>
+<li>Préférez l'injection par constructeur (pas besoin d'annotation depuis Spring 4.3)</li>
+<li>Utilisez <code>@RestController</code> au lieu de <code>@Controller</code> (combine <code>@Controller</code> + <code>@ResponseBody</code>)</li>
+<li>Utilisez <code>ResponseEntity&lt;&gt;</code> pour les réponses HTTP</li>
+</ol>
+<p><strong>Exemple de Controller</strong> :</p>
+<pre><code class="language-java"><span class="hljs-meta">@RestController</span>
+<span class="hljs-meta">@RequestMapping(&quot;/api/products&quot;)</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ProductController</span> {
+    
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ProductService productService;
+    
+    <span class="hljs-comment">// Injection par constructeur (pas d&#x27;annotation nécessaire)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">ProductController</span><span class="hljs-params">(ProductService productService)</span> {
+        <span class="hljs-built_in">this</span>.productService = productService;
+    }
+    
+    <span class="hljs-meta">@GetMapping</span>
+    <span class="hljs-keyword">public</span> ResponseEntity&lt;List&lt;Product&gt;&gt; <span class="hljs-title function_">getAllProducts</span><span class="hljs-params">(
+            <span class="hljs-meta">@RequestParam(required = false)</span> String category)</span> {
+        <span class="hljs-comment">// Votre code</span>
+    }
+}
+</code></pre>
+<h3 id="34-lancement-et-tests">3.4 Lancement et Tests</h3>
+<p><strong>Consignes</strong> :</p>
+<ol>
+<li>Lancez avec <code>mvn spring-boot:run</code> ou via le Spring Boot Dashboard de VS Code</li>
+<li>Testez tous les endpoints (port 8081)</li>
+<li>Observez le rechargement automatique (DevTools)</li>
+</ol>
+<p><strong>Livrable 3</strong> : Captures d'écran des tests Spring Boot</p>
+<hr>
+<h2 id="-partie-4--analyse-comparative-15-min">📝 Partie 4 : Analyse Comparative (15 min)</h2>
+<h3 id="objectif-3">Objectif</h3>
+<p>Comparer les deux approches et comprendre leurs différences</p>
+<h3 id="41-document-de-comparaison">4.1 Document de Comparaison</h3>
+<p><strong>Consignes</strong> :
+Créez un fichier <code>ANALYSE.md</code> et complétez ce tableau :</p>
+<table>
+<thead>
+<tr>
+<th>Critère</th>
+<th>Jakarta EE</th>
+<th>Spring Boot</th>
+<th>Observations</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Configuration</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Annotations</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Démarrage</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Packaging</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Serveur</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Hot Reload</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Simplicité</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-questions-de-réflexion">4.2 Questions de Réflexion</h3>
+<p>Répondez à ces questions dans votre <code>ANALYSE.md</code> :</p>
+<ol>
+<li>
+<p><strong>Architecture</strong> : Les deux applications ont-elles la même structure en couches ? Pourquoi ?</p>
+</li>
+<li>
+<p><strong>Dépendances</strong> : Qu'avez-vous injecté dans le Service ? Une interface ou une classe ? Pourquoi c'est important ?</p>
+</li>
+<li>
+<p><strong>SOLID</strong> : Identifiez comment chaque principe SOLID est respecté :</p>
+<ul>
+<li>SRP : Exemple concret dans votre code</li>
+<li>OCP : Que pourriez-vous étendre sans modifier ?</li>
+<li>LSP : Où est appliqué ce principe ?</li>
+<li>ISP : Votre interface Repository est-elle bien découpée ?</li>
+<li>DIP : Qui dépend de quoi ?</li>
+</ul>
+</li>
+<li>
+<p><strong>Tests</strong> : Comment testeriez-vous ProductService sans base de données ?</p>
+</li>
+<li>
+<p><strong>Évolution</strong> : Si demain vous devez ajouter JPA, quelles classes devrez-vous :</p>
+<ul>
+<li>Modifier ?</li>
+<li>Créer ?</li>
+<li>Ne pas toucher ?</li>
+</ul>
+</li>
+</ol>
+<p><strong>Livrable 4</strong> : Fichier <code>ANALYSE.md</code> complété</p>
+<hr>
+<h2 id="-bonus--ajouter-la-persistence-jpa-optionnel">🎁 BONUS : Ajouter la Persistence JPA (Optionnel)</h2>
+<h3 id="objectif-4">Objectif</h3>
+<p>Comprendre pourquoi l'architecture facilite l'évolution</p>
+<h3 id="consignes">Consignes</h3>
+<p>Cette partie est <strong>entièrement guidée</strong> car elle illustre les bénéfices de votre architecture.</p>
+<h4 id="b1-refactoring-avec-interface-si-pas-encore-fait">B.1 Refactoring avec Interface (Si pas encore fait)</h4>
+<p>Si vous n'avez pas créé d'interface <code>IProductRepository</code>, faites-le maintenant :</p>
+<ol>
+<li>Créez l'interface <code>IProductRepository</code></li>
+<li>Renommez <code>ProductRepository</code> en <code>InMemoryProductRepository</code></li>
+<li>Faites implémenter l'interface</li>
+<li>Modifiez le Service pour dépendre de l'interface</li>
+</ol>
+<p><strong>Question</strong> : Avez-vous dû modifier le code du Service ? Pourquoi ?</p>
+<h4 id="b2-jakarta-ee--jpa">B.2 Jakarta EE + JPA</h4>
+<p><strong>Étapes</strong> :</p>
+<ol>
+<li>Ajoutez la dépendance PostgreSQL dans le <code>pom.xml</code></li>
+<li>Transformez <code>Product</code> en <code>@Entity</code> JPA (ajoutez les annotations)</li>
+<li>Créez <code>persistence.xml</code> dans <code>META-INF/</code></li>
+<li>Créez <code>JpaProductRepository</code> qui implémente <code>IProductRepository</code></li>
+<li>Utilisez <code>@PersistenceContext EntityManager</code></li>
+<li>Utilisez les qualifiers CDI pour choisir l'implémentation</li>
+</ol>
+<p><strong>Question clé</strong> : Avez-vous modifié <code>InMemoryProductRepository</code> ? Le Service ? Le Resource ? Pourquoi ?</p>
+<h4 id="b3-spring-boot--jpa">B.3 Spring Boot + JPA</h4>
+<p><strong>Étapes</strong> :</p>
+<ol>
+<li>Ajoutez <code>spring-boot-starter-data-jpa</code> et <code>postgresql</code> dans le pom</li>
+<li>Configurez <code>application.properties</code> avec les infos DB</li>
+<li>Transformez <code>Product</code> en <code>@Entity</code></li>
+<li>Créez l'interface <code>JpaProductRepository extends JpaRepository&lt;Product, String&gt;</code></li>
+<li>Utilisez <code>@Profile(&quot;prod&quot;)</code> et <code>@Profile(&quot;dev&quot;)</code> pour choisir</li>
+</ol>
+<p><strong>Magie Spring Data</strong> : Observez que l'interface suffit, pas besoin d'implémentation !</p>
+<h4 id="b4-analyse">B.4 Analyse</h4>
+<p><strong>Questions</strong> :</p>
+<ol>
+<li>Combien de fichiers avez-vous <strong>créés</strong> ?</li>
+<li>Combien de fichiers avez-vous <strong>modifiés</strong> ?</li>
+<li>Les couches supérieures ont-elles changé ?</li>
+<li>Qu'avez-vous appris sur l'architecture en couches ?</li>
+</ol>
+<p><strong>Livrable BONUS</strong> : Document expliquant la migration vers JPA et les principes SOLID observés</p>
+<hr>
+<h2 id="-livrables-finaux">📦 Livrables Finaux</h2>
+<p>À rendre dans une archive <code>TP1_NOM_Prenom.zip</code> :</p>
+<h3 id="code-source">Code Source</h3>
+<pre><code>TP1_NOM_Prenom/
+├── jakarta-products-api/
+│   ├── src/
+│   ├── pom.xml
+│   ├── Dockerfile
+│   └── docker-compose.yml
+│
+├── spring-products-api/
+│   ├── src/
+│   ├── pom.xml
+│   └── application.properties
+│
+├── ANALYSE.md
+├── README.md (instructions de lancement)
+└── captures/
+    ├── environnement.png
+    ├── jakarta-tests.png
+    └── spring-tests.png
+</code></pre>
+<h3 id="readmemd-requis"><a href="http://README.html">README.md</a> Requis</h3>
+<p>Créez un <code>README.md</code> contenant :</p>
+<pre><code class="language-markdown"><span class="hljs-section"># TP1 - API REST avec Architecture en Couches</span>
+
+<span class="hljs-section">## Auteur</span>
+[Votre Nom]
+
+<span class="hljs-section">## Lancement Jakarta EE</span>
+<span class="hljs-code">```bash
+cd jakarta-products-api
+mvn clean package
+docker compose up -d
+</span></code></pre>
+<h2 id="lancement-spring-boot">Lancement Spring Boot</h2>
+<pre><code class="language-bash"><span class="hljs-built_in">cd</span> spring-products-api
+mvn spring-boot:run
+</code></pre>
+<h2 id="tests">Tests</h2>
+<ul>
+<li>Jakarta EE : <a href="http://localhost:8080/products-api/api/products">http://localhost:8080/products-api/api/products</a></li>
+<li>Spring Boot : <a href="http://localhost:8081/api/products">http://localhost:8081/api/products</a></li>
+</ul>
+<h2 id="difficultés-rencontrées">Difficultés Rencontrées</h2>
+<p>[Décrivez les problèmes et comment vous les avez résolus]</p>
+<h2 id="points-clés-appris">Points Clés Appris</h2>
+<p>[3-5 points essentiels que vous avez compris]</p>
+<pre><code>
+---
+
+## ✅ Critères d'Évaluation (sur 20)
+
+| Critère | Points | Détails |
+|---------|--------|---------|
+| **Architecture en couches** | 5 | Séparation claire, responsabilités respectées |
+| **Interface Repository** | 3 | Interface créée et utilisée correctement |
+| **Injection de dépendances** | 2 | Pas de `new`, injection correcte |
+| **API REST Jakarta EE** | 3 | Tous les endpoints fonctionnels |
+| **API REST Spring Boot** | 3 | Tous les endpoints fonctionnels |
+| **Gestion des erreurs** | 1 | Codes HTTP appropriés |
+| **Analyse comparative** | 2 | Document complet et réfléchi |
+| **Qualité code et organisation** | 1 | Code propre, nommage cohérent |
+| **TOTAL** | **20** | |
+
+**Bonus** : +2 points pour la partie JPA (note maximale 20)
+
+---
+
+## 💡 Conseils
+
+### Pendant le TP
+
+1. **Lisez les consignes en entier** avant de commencer
+2. **Suivez l'ordre** : les parties s'appuient les unes sur les autres
+3. **Testez régulièrement** : ne codez pas tout puis testez
+4. **Posez des questions** : ne restez pas bloqué
+
+### Debugging
+
+**Jakarta EE ne démarre pas** :
+- Vérifiez les logs Docker : `docker compose logs -f`
+- Vérifiez que le WAR est créé : `ls target/`
+- Vérifiez la syntaxe des annotations
+
+**Spring Boot ne démarre pas** :
+- Regardez les logs dans la console
+- Vérifiez `application.properties`
+- Vérifiez les dépendances Maven
+
+**Injection ne fonctionne pas** :
+- Jakarta EE : Vérifiez `@ApplicationScoped` et `@Inject`
+- Spring : Vérifiez `@Service` / `@Repository`
+- Les deux : Vérifiez que la classe injectée est bien un bean
+
+### Ressources
+
+- [Jakarta EE Tutorial](https://eclipse-ee4j.github.io/jakartaee-tutorial/)
+- [Spring Boot Guides](https://spring.io/guides)
+- [VS Code Java](https://code.visualstudio.com/docs/java/java-tutorial)
+
+---
+
+## 🎯 Ce que Vous Allez Apprendre
+
+En faisant ce TP, vous comprendrez :
+
+✅ Pourquoi séparer en couches facilite la maintenance  
+✅ Comment une interface découple les dépendances  
+✅ Pourquoi l'injection de dépendances rend le code testable  
+✅ Comment appliquer les principes SOLID concrètement  
+✅ Les différences entre Jakarta EE et Spring Boot  
+✅ Comment concevoir une API REST professionnelle  
+
+**Bon courage ! 🚀**
+</code></pre>
+
+            <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+            
+        </body>
+        </html>
