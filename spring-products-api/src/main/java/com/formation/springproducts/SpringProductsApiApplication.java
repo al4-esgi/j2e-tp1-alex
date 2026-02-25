@@ -2,23 +2,25 @@ package com.formation.springproducts;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
 /**
- * SpringProductsApiApplication - Point d'entrée de l'application Spring Boot
+ * SpringProductsApiApplication — Point d'entrée de l'application Spring Boot (TP2)
  *
- * @SpringBootApplication : Annotation composite qui active :
- *   - @Configuration : Classe de configuration Spring
- *   - @EnableAutoConfiguration : Configuration automatique basée sur les dépendances
- *   - @ComponentScan : Scan automatique des composants dans ce package et sous-packages
+ * @SpringBootApplication active :
+ *   - @Configuration          : classe de configuration Spring
+ *   - @EnableAutoConfiguration : auto-configure Spring Data JPA, DataSource, Hibernate
+ *                                grâce aux dépendances présentes dans le classpath
+ *   - @ComponentScan          : détecte automatiquement @Entity, @Repository,
+ *                               @Service, @RestController dans ce package et ses sous-packages
+ *
+ * Changement TP2 :
+ * - Suppression de exclude = { DataSourceAutoConfiguration.class }
+ *   → Spring Boot peut maintenant auto-configurer la DataSource PostgreSQL
+ *     et l'EntityManagerFactory à partir de application.properties.
  */
-@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class })
+@SpringBootApplication
 public class SpringProductsApiApplication {
 
-    /**
-     * Point d'entrée de l'application
-     * @param args arguments de ligne de commande
-     */
     public static void main(String[] args) {
         SpringApplication.run(SpringProductsApiApplication.class, args);
     }

@@ -1,22 +1,24 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.2.2</version>
-        <relativePath/>
+        <relativePath />
     </parent>
 
     <groupId>com.formation</groupId>
     <artifactId>spring-products-api</artifactId>
     <version>1.0.0</version>
     <name>Spring Products API</name>
-    <description>API REST de gestion de produits avec Spring Boot</description>
+    <description>API REST de gestion de produits avec Spring Boot et JPA</description>
 
     <properties>
         <java.version>17</java.version>
@@ -44,19 +46,24 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- Spring Boot Data JPA (pour le bonus avec PostgreSQL) -->
+        <!-- Spring Boot Data JPA -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <optional>true</optional>
         </dependency>
 
-        <!-- PostgreSQL Driver (pour le bonus) -->
+        <!-- PostgreSQL Driver -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
-            <optional>true</optional>
+        </dependency>
+
+        <!-- Jackson Hibernate6 Module : sérialise les proxies LAZY comme null -->
+        <!-- au lieu de lancer LazyInitializationException hors session -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-hibernate6</artifactId>
         </dependency>
 
         <!-- Spring Boot Test (pour les tests unitaires) -->

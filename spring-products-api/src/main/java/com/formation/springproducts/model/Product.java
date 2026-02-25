@@ -1,48 +1,161 @@
 package com.formation.springproducts.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedEntityGraphs;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.UUID;
 
 /**
- * Entité Product - Couche Domain
- * Représente un produit dans le système de gestion
+ * Entité Product - Version JPA complète (TP2)
  *
- * Identique à la version Jakarta EE pour respecter la même architecture
+ * Changements par rapport au TP1 :
+ * - id : String -> Long (généré par la base)
+ * - category : String -> @ManyToOne Category (clé étrangère category_id)
+ * - supplier : @ManyToOne Supplier (clé étrangère supplier_id)
+ * - createdAt / updatedAt gérés par @PrePersist / @PreUpdate
+ *
+ * Fetch strategies :
+ * - LAZY sur category et supplier → la relation n'est pas chargée automatiquement,
+ *   il faut un JOIN FETCH explicite dans les requêtes JPQL pour éviter le N+1.
+ *
+ * @NamedEntityGraph : profils de chargement nommés utilisables depuis les repositories.
  */
+@Entity
+@Table(name = "products")
+@NamedEntityGraphs(
+    {
+        @NamedEntityGraph(name = "Product.withCategory", attributeNodes = @NamedAttributeNode("category")),
+        @NamedEntityGraph(name = "Product.full", attributeNodes = { @NamedAttributeNode("category"), @NamedAttributeNode("supplier") }),
+    }
+)
 public class Product {
 
-    private String id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotBlank(message = "Le nom du produit est obligatoire")
+    @Size(max = 200, message = "Le nom ne peut pas dépasser 200 caractères")
+    @Column(nullable = false, length = 200)
     private String name;
+
+    @Size(max = 1000, message = "La description ne peut pas dépasser 1000 caractères")
+    @Column(length = 1000)
     private String description;
+
+    @NotNull(message = "Le prix est obligatoire")
+    @DecimalMin(value = "0.01", message = "Le prix doit être supérieur à zéro")
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
-    private String category;
+
+    @Min(value = 0, message = "Le stock ne peut pas être négatif")
+    @Column(nullable = false)
     private int stock;
+
+    /**
+     * Relation ManyToOne vers Category.
+     *
+     * LAZY : la catégorie n'est pas chargée automatiquement avec le produit.
+     * Pour la charger, utiliser JOIN FETCH dans une requête JPQL.
+     * Cela évite les requêtes inutiles quand on n'a pas besoin de la catégorie.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    /**
+     * Relation ManyToOne vers Supplier.
+     *
+     * LAZY : même raison que pour category.
+     * LEFT JOIN FETCH dans les requêtes car le supplier peut être null.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id")
+    private Supplier supplier;
+
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    // Constructeur par défaut
-    public Product() {
-        this.id = UUID.randomUUID().toString();
-        this.createdAt = LocalDateTime.now();
-    }
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
-    // Constructeur avec paramètres
-    public Product(String name, String description, BigDecimal price, String category, int stock) {
-        this();
+    // -------------------------------------------------------------------------
+    // Constructeurs
+    // -------------------------------------------------------------------------
+
+    public Product() {}
+
+    public Product(String name, String description, BigDecimal price, int stock) {
         this.name = name;
         this.description = description;
         this.price = price;
-        this.category = category;
         this.stock = stock;
     }
 
-    // Getters et Setters
-    public String getId() {
+    public Product(String name, String description, BigDecimal price, int stock, Category category, Supplier supplier) {
+        this(name, description, price, stock);
+        this.category = category;
+        this.supplier = supplier;
+    }
+
+    // -------------------------------------------------------------------------
+    // Callbacks JPA
+    // -------------------------------------------------------------------------
+
+    /**
+     * Appelé automatiquement par JPA avant le premier INSERT.
+     * Initialise les timestamps.
+     */
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Appelé automatiquement par JPA avant chaque UPDATE.
+     * Met à jour le timestamp de modification.
+     */
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // -------------------------------------------------------------------------
+    // Méthodes utilitaires
+    // -------------------------------------------------------------------------
+
+    public void adjustStock(int quantity) {
+        this.stock += quantity;
+    }
+
+    // -------------------------------------------------------------------------
+    // Getters / Setters
+    // -------------------------------------------------------------------------
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -70,20 +183,28 @@ public class Product {
         this.price = price;
     }
 
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
     public int getStock() {
         return stock;
     }
 
     public void setStock(int stock) {
         this.stock = stock;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(Supplier supplier) {
+        this.supplier = supplier;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -94,10 +215,17 @@ public class Product {
         this.createdAt = createdAt;
     }
 
-    // Méthode utilitaire pour ajuster le stock
-    public void adjustStock(int quantity) {
-        this.stock += quantity;
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    // -------------------------------------------------------------------------
+    // equals / hashCode / toString
+    // -------------------------------------------------------------------------
 
     @Override
     public boolean equals(Object o) {
@@ -114,14 +242,22 @@ public class Product {
 
     @Override
     public String toString() {
-        return "Product{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", price=" + price +
-                ", category='" + category + '\'' +
-                ", stock=" + stock +
-                ", createdAt=" + createdAt +
-                '}';
+        return (
+            "Product{" +
+            "id=" +
+            id +
+            ", name='" +
+            name +
+            '\'' +
+            ", price=" +
+            price +
+            ", stock=" +
+            stock +
+            ", category=" +
+            (category != null ? category.getName() : "null") +
+            ", supplier=" +
+            (supplier != null ? supplier.getName() : "null") +
+            '}'
+        );
     }
 }
