@@ -1,6 +1,9 @@
 package com.formation.springproducts.service;
 
 import com.formation.springproducts.dto.CategoryStats;
+import com.formation.springproducts.exception.DuplicateProductException;
+import com.formation.springproducts.exception.InsufficientStockException;
+import com.formation.springproducts.exception.ProductNotFoundException;
 import com.formation.springproducts.model.Category;
 import com.formation.springproducts.model.Product;
 import com.formation.springproducts.model.Supplier;
@@ -55,9 +58,16 @@ public class ProductService {
      * Le produit doit avoir sa catégorie assignée (entité avec id valide).
      *
      * @throws IllegalArgumentException si les données sont invalides
+     * @throws DuplicateProductException si un produit avec ce SKU existe déjà
      */
     public Product createProduct(Product product) {
         validateProduct(product);
+        // Vérification unicité du SKU
+        if (product.getSku() != null && !product.getSku().isBlank()) {
+            if (productRepository.existsBySku(product.getSku())) {
+                throw new DuplicateProductException(product.getSku());
+            }
+        }
         product.setId(null); // force INSERT
         return productRepository.save(product);
     }
@@ -66,11 +76,24 @@ public class ProductService {
      * Récupère un produit par son id.
      * Utilise le @NamedEntityGraph "Product.full" pour charger
      * category + supplier en une seule requête.
+     *
+     * @throws ProductNotFoundException si le produit n'existe pas
      */
     @Transactional(readOnly = true)
     public Optional<Product> getProduct(Long id) {
         if (id == null || id <= 0) return Optional.empty();
         return productRepository.findWithGraphById(id);
+    }
+
+    /**
+     * Récupère un produit par son id ou lève ProductNotFoundException.
+     * À utiliser dans les cas où l'absence du produit est une erreur.
+     *
+     * @throws ProductNotFoundException si le produit n'existe pas
+     */
+    @Transactional(readOnly = true)
+    public Product getProductOrThrow(Long id) {
+        return productRepository.findWithGraphById(id).orElseThrow(() -> new ProductNotFoundException(id));
     }
 
     /**
@@ -167,10 +190,12 @@ public class ProductService {
     /**
      * Met à jour un produit existant.
      *
-     * @throws IllegalArgumentException si le produit n'existe pas ou données invalides
+     * @throws ProductNotFoundException si le produit n'existe pas
+     * @throws IllegalArgumentException si les données sont invalides
+     * @throws DuplicateProductException si le SKU est déjà utilisé par un autre produit
      */
     public Product updateProduct(Long id, Product updatedProduct) {
-        Product existing = productRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Produit non trouvé avec l'ID: " + id));
+        Product existing = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
 
         validateProductForUpdate(updatedProduct);
 
@@ -178,6 +203,14 @@ public class ProductService {
         existing.setDescription(updatedProduct.getDescription());
         existing.setPrice(updatedProduct.getPrice());
         existing.setStock(updatedProduct.getStock());
+
+        // Vérification unicité du SKU (uniquement si le SKU change)
+        if (updatedProduct.getSku() != null && !updatedProduct.getSku().isBlank()) {
+            if (!updatedProduct.getSku().equals(existing.getSku()) && productRepository.existsBySku(updatedProduct.getSku())) {
+                throw new DuplicateProductException(updatedProduct.getSku());
+            }
+            existing.setSku(updatedProduct.getSku());
+        }
 
         if (updatedProduct.getCategory() != null && updatedProduct.getCategory().getId() != null) {
             Category newCategory = categoryRepository
@@ -201,11 +234,11 @@ public class ProductService {
     /**
      * Supprime un produit.
      *
-     * @throws IllegalArgumentException si le produit n'existe pas
+     * @throws ProductNotFoundException si le produit n'existe pas
      */
     public void deleteProduct(Long id) {
         if (!productRepository.existsById(id)) {
-            throw new IllegalArgumentException("Produit non trouvé avec l'ID: " + id);
+            throw new ProductNotFoundException(id);
         }
         productRepository.deleteById(id);
     }
@@ -217,9 +250,18 @@ public class ProductService {
     /**
      * Crée un produit en cherchant ou créant sa catégorie par nom.
      * Tout dans une seule transaction : si une étape échoue → rollback complet.
+     *
+     * @throws DuplicateProductException si le SKU est déjà utilisé
      */
     public Product createProductWithCategory(Product product, String categoryName, Long supplierId) {
         validateProductForUpdate(product);
+
+        // Vérification unicité du SKU
+        if (product.getSku() != null && !product.getSku().isBlank()) {
+            if (productRepository.existsBySku(product.getSku())) {
+                throw new DuplicateProductException(product.getSku());
+            }
+        }
 
         // Chercher ou créer la catégorie
         Category category = categoryRepository.findByNameIgnoreCase(categoryName).orElseGet(() -> categoryRepository.save(new Category(categoryName, null)));
@@ -238,10 +280,11 @@ public class ProductService {
     /**
      * Ajuste le stock d'un produit (quantité positive = entrée, négative = sortie).
      *
-     * @throws IllegalArgumentException si le produit n'existe pas ou stock insuffisant
+     * @throws ProductNotFoundException si le produit n'existe pas
+     * @throws IllegalArgumentException si le stock résultant serait négatif
      */
     public Product updateStock(Long productId, int quantity) {
-        Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("Produit non trouvé avec l'ID: " + productId));
+        Product product = productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
 
         int newStock = product.getStock() + quantity;
         if (newStock < 0) {
@@ -250,6 +293,27 @@ public class ProductService {
 
         product.setStock(newStock);
         return productRepository.save(product);
+    }
+
+    /**
+     * Diminue le stock d'un produit d'une quantité donnée.
+     * Validation métier : lève InsufficientStockException si le stock est insuffisant.
+     *
+     * Partie 6.1 du TP3.
+     *
+     * @throws ProductNotFoundException   si le produit n'existe pas
+     * @throws InsufficientStockException si le stock disponible est insuffisant
+     */
+    @Transactional
+    public void decreaseStock(Long productId, int quantity) {
+        Product product = productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
+
+        if (product.getStock() < quantity) {
+            throw new InsufficientStockException(product.getName(), quantity, product.getStock());
+        }
+
+        product.setStock(product.getStock() - quantity);
+        // Dirty checking : pas besoin de save() si l'entité est managed dans la transaction
     }
 
     /**

@@ -1,13 +1,13 @@
 package com.formation.springproducts.controller;
 
 import com.formation.springproducts.dto.CategoryStats;
+import com.formation.springproducts.exception.ProductNotFoundException;
 import com.formation.springproducts.model.Product;
 import com.formation.springproducts.service.ProductService;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -132,11 +132,11 @@ public class ProductController {
      * @return 200 OK avec le produit, ou 404 NOT FOUND
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getProduct(@PathVariable Long id) {
+    public ResponseEntity<Product> getProduct(@PathVariable Long id) {
         return productService
             .getProduct(id)
-            .<ResponseEntity<?>>map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage("Produit non trouvé avec l'ID: " + id)));
+            .map(ResponseEntity::ok)
+            .orElseThrow(() -> new ProductNotFoundException(id));
     }
 
     /**
@@ -160,14 +160,10 @@ public class ProductController {
      * @return 201 CREATED avec le produit créé et le header Location
      */
     @PostMapping
-    public ResponseEntity<?> createProduct(@Valid @RequestBody Product product) {
-        try {
-            Product created = productService.createProduct(product);
-            URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(created.getId()).toUri();
-            return ResponseEntity.created(location).body(created);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new ErrorMessage(e.getMessage()));
-        }
+    public ResponseEntity<Product> createProduct(@Valid @RequestBody Product product) {
+        Product created = productService.createProduct(product);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(created.getId()).toUri();
+        return ResponseEntity.created(location).body(created);
     }
 
     /**
@@ -190,14 +186,10 @@ public class ProductController {
      * @return 201 CREATED avec le produit créé
      */
     @PostMapping("/with-category")
-    public ResponseEntity<?> createProductWithCategory(@RequestBody CreateWithCategoryRequest request) {
-        try {
-            Product created = productService.createProductWithCategory(request.getProduct(), request.getCategoryName(), request.getSupplierId());
-            URI location = ServletUriComponentsBuilder.fromCurrentRequest().replacePath("/api/products/{id}").buildAndExpand(created.getId()).toUri();
-            return ResponseEntity.created(location).body(created);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new ErrorMessage(e.getMessage()));
-        }
+    public ResponseEntity<Product> createProductWithCategory(@RequestBody CreateWithCategoryRequest request) {
+        Product created = productService.createProductWithCategory(request.getProduct(), request.getCategoryName(), request.getSupplierId());
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().replacePath("/api/products/{id}").buildAndExpand(created.getId()).toUri();
+        return ResponseEntity.created(location).body(created);
     }
 
     /**
@@ -219,17 +211,9 @@ public class ProductController {
      * @return 200 OK avec le produit mis à jour, ou 404 NOT FOUND
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody Product product) {
-        try {
-            Product updated = productService.updateProduct(id, product);
-            return ResponseEntity.ok(updated);
-        } catch (IllegalArgumentException e) {
-            String msg = e.getMessage();
-            if (msg != null && msg.contains("non trouvé")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(msg));
-            }
-            return ResponseEntity.badRequest().body(new ErrorMessage(msg));
-        }
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody Product product) {
+        Product updated = productService.updateProduct(id, product);
+        return ResponseEntity.ok(updated);
     }
 
     /**
@@ -241,13 +225,9 @@ public class ProductController {
      * @return 204 NO CONTENT, ou 404 NOT FOUND
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
-        try {
-            productService.deleteProduct(id);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(e.getMessage()));
-        }
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
     }
 
     // =========================================================================
@@ -267,13 +247,31 @@ public class ProductController {
      * @return 200 OK avec le produit mis à jour
      */
     @PatchMapping("/{id}/stock")
-    public ResponseEntity<?> updateStock(@PathVariable Long id, @RequestBody StockUpdate stockUpdate) {
-        try {
-            Product updated = productService.updateStock(id, stockUpdate.getQuantity());
-            return ResponseEntity.ok(updated);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new ErrorMessage(e.getMessage()));
-        }
+    public ResponseEntity<Product> updateStock(@PathVariable Long id, @RequestBody StockUpdate stockUpdate) {
+        Product updated = productService.updateStock(id, stockUpdate.getQuantity());
+        return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * PATCH /api/products/{id}/stock/decrease
+     *
+     * Diminue le stock d'un produit d'une quantité donnée.
+     * Lève InsufficientStockException (422) si le stock est insuffisant.
+     *
+     * Corps JSON :
+     * { "quantity": 5 }  → retire 5 unités du stock
+     *
+     * @param id identifiant Long du produit
+     * @return 200 OK avec le produit mis à jour
+     */
+    @PatchMapping("/{id}/stock/decrease")
+    public ResponseEntity<Product> decreaseStock(@PathVariable Long id, @RequestBody StockUpdate stockUpdate) {
+        productService.decreaseStock(id, stockUpdate.getQuantity());
+        // Rechargement du produit pour retourner le stock mis à jour
+        return productService
+            .getProduct(id)
+            .map(ResponseEntity::ok)
+            .orElseThrow(() -> new ProductNotFoundException(id));
     }
 
     // =========================================================================
@@ -328,11 +326,7 @@ public class ProductController {
      */
     @GetMapping("/top")
     public ResponseEntity<?> getTopExpensive(@RequestParam(defaultValue = "10") int limit) {
-        try {
-            return ResponseEntity.ok(productService.getTopExpensiveProducts(limit));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new ErrorMessage(e.getMessage()));
-        }
+        return ResponseEntity.ok(productService.getTopExpensiveProducts(limit));
     }
 
     /**
@@ -358,12 +352,8 @@ public class ProductController {
      */
     @PostMapping("/transfer")
     public ResponseEntity<?> transferProducts(@RequestBody TransferRequest request) {
-        try {
-            productService.transferProducts(request.getFromCategoryId(), request.getToCategoryId());
-            return ResponseEntity.ok(new ErrorMessage("Produits transférés avec succès de la catégorie " + request.getFromCategoryId() + " vers " + request.getToCategoryId()));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new ErrorMessage(e.getMessage()));
-        }
+        productService.transferProducts(request.getFromCategoryId(), request.getToCategoryId());
+        return ResponseEntity.ok(new ErrorMessage("Produits transférés avec succès de la catégorie " + request.getFromCategoryId() + " vers " + request.getToCategoryId()));
     }
 
     /**

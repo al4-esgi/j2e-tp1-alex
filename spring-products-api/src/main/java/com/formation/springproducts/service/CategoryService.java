@@ -1,5 +1,7 @@
 package com.formation.springproducts.service;
 
+import com.formation.springproducts.exception.CategoryNotEmptyException;
+import com.formation.springproducts.exception.CategoryNotFoundException;
 import com.formation.springproducts.model.Category;
 import com.formation.springproducts.repository.CategoryRepository;
 import java.util.List;
@@ -45,11 +47,11 @@ public class CategoryService {
      */
     @Transactional(readOnly = true)
     public Category getCategoryWithProducts(Long id) {
-        return categoryRepository.findByIdWithProducts(id).orElseThrow(() -> new IllegalArgumentException("Catégorie non trouvée avec l'ID: " + id));
+        return categoryRepository.findByIdWithProducts(id).orElseThrow(() -> new CategoryNotFoundException(id));
     }
 
     public Category updateCategory(Long id, String name, String description) {
-        Category category = categoryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Catégorie non trouvée avec l'ID: " + id));
+        Category category = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(id));
 
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Le nom de la catégorie est obligatoire");
@@ -65,14 +67,25 @@ public class CategoryService {
     }
 
     /**
-     * Supprime une catégorie et TOUS ses produits associés.
-     * cascade = ALL + orphanRemoval = true sur Category.products
-     * → les produits sont supprimés en cascade.
+     * Supprime une catégorie uniquement si elle ne contient aucun produit.
+     *
+     * Partie 6.3 du TP3 : validation avant suppression.
+     * On vérifie d'abord que la catégorie existe (CategoryNotFoundException → 404),
+     * puis que la catégorie est vide (CategoryNotEmptyException → 409).
+     *
+     * Note : si on voulait supprimer en cascade, on retirerait le check isEmpty()
+     * et on laisserait cascade = ALL + orphanRemoval = true agir automatiquement.
+     *
+     * @throws CategoryNotFoundException  si la catégorie n'existe pas
+     * @throws CategoryNotEmptyException  si la catégorie contient des produits
      */
     public void deleteCategory(Long id) {
-        if (!categoryRepository.existsById(id)) {
-            throw new IllegalArgumentException("Catégorie non trouvée avec l'ID: " + id);
+        Category category = categoryRepository.findByIdWithProducts(id).orElseThrow(() -> new CategoryNotFoundException(id));
+
+        if (!category.getProducts().isEmpty()) {
+            throw new CategoryNotEmptyException(id, category.getProducts().size());
         }
+
         categoryRepository.deleteById(id);
     }
 

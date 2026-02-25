@@ -1,9 +1,10 @@
 package com.formation.springproducts.controller;
 
+import com.formation.springproducts.exception.CategoryNotFoundException;
+import com.formation.springproducts.model.Category;
+import com.formation.springproducts.service.CategoryService;
 import java.net.URI;
 import java.util.List;
-
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,9 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
-import com.formation.springproducts.model.Category;
-import com.formation.springproducts.service.CategoryService;
 
 /**
  * CategoryController — Couche Présentation REST pour les catégories (TP2)
@@ -70,11 +68,11 @@ public class CategoryController {
      * @return 200 OK avec la catégorie, ou 404 NOT FOUND
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCategory(@PathVariable Long id) {
-        return categoryService.getCategory(id)
-                .<ResponseEntity<?>>map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ErrorMessage("Catégorie non trouvée avec l'ID: " + id)));
+    public ResponseEntity<Category> getCategory(@PathVariable Long id) {
+        return categoryService
+            .getCategory(id)
+            .map(ResponseEntity::ok)
+            .orElseThrow(() -> new CategoryNotFoundException(id));
     }
 
     /**
@@ -96,17 +94,9 @@ public class CategoryController {
      * @return 200 OK avec la catégorie + liste des produits, ou 404 NOT FOUND
      */
     @GetMapping("/{id}/products")
-    public ResponseEntity<?> getCategoryWithProducts(@PathVariable Long id) {
-        try {
-            Category category = categoryService.getCategoryWithProducts(id);
-            // Temporairement exposer les produits pour cet endpoint en les ajoutant
-            // dans une réponse enveloppée
-            CategoryWithProductsResponse response = new CategoryWithProductsResponse(category);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorMessage(e.getMessage()));
-        }
+    public ResponseEntity<CategoryWithProductsResponse> getCategoryWithProducts(@PathVariable Long id) {
+        Category category = categoryService.getCategoryWithProducts(id);
+        return ResponseEntity.ok(new CategoryWithProductsResponse(category));
     }
 
     /**
@@ -140,18 +130,10 @@ public class CategoryController {
      *         ou 400 BAD REQUEST si le nom est vide / déjà utilisé
      */
     @PostMapping
-    public ResponseEntity<?> createCategory(@RequestBody CategoryRequest request) {
-        try {
-            Category created = categoryService.createCategory(request.getName(), request.getDescription());
-            URI location = ServletUriComponentsBuilder
-                    .fromCurrentRequest()
-                    .path("/{id}")
-                    .buildAndExpand(created.getId())
-                    .toUri();
-            return ResponseEntity.created(location).body(created);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new ErrorMessage(e.getMessage()));
-        }
+    public ResponseEntity<Category> createCategory(@RequestBody CategoryRequest request) {
+        Category created = categoryService.createCategory(request.getName(), request.getDescription());
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(created.getId()).toUri();
+        return ResponseEntity.created(location).body(created);
     }
 
     /**
@@ -171,17 +153,9 @@ public class CategoryController {
      *         400 BAD REQUEST si données invalides
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCategory(@PathVariable Long id, @RequestBody CategoryRequest request) {
-        try {
-            Category updated = categoryService.updateCategory(id, request.getName(), request.getDescription());
-            return ResponseEntity.ok(updated);
-        } catch (IllegalArgumentException e) {
-            String msg = e.getMessage();
-            if (msg != null && msg.contains("non trouvée")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(msg));
-            }
-            return ResponseEntity.badRequest().body(new ErrorMessage(msg));
-        }
+    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody CategoryRequest request) {
+        Category updated = categoryService.updateCategory(id, request.getName(), request.getDescription());
+        return ResponseEntity.ok(updated);
     }
 
     /**
@@ -197,14 +171,9 @@ public class CategoryController {
      * @return 204 NO CONTENT si supprimée avec succès, ou 404 NOT FOUND
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
-        try {
-            categoryService.deleteCategory(id);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorMessage(e.getMessage()));
-        }
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+        categoryService.deleteCategory(id);
+        return ResponseEntity.noContent().build();
     }
 
     // =========================================================================

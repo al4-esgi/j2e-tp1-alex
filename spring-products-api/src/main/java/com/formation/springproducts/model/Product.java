@@ -1,5 +1,7 @@
 package com.formation.springproducts.model;
 
+import com.formation.springproducts.validation.ValidPrice;
+import com.formation.springproducts.validation.ValidSKU;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,6 +17,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -53,7 +56,7 @@ public class Product {
     private Long id;
 
     @NotBlank(message = "Le nom du produit est obligatoire")
-    @Size(max = 200, message = "Le nom ne peut pas dépasser 200 caractères")
+    @Size(min = 2, max = 200, message = "Le nom doit contenir entre {min} et {max} caractères")
     @Column(nullable = false, length = 200)
     private String name;
 
@@ -62,7 +65,9 @@ public class Product {
     private String description;
 
     @NotNull(message = "Le prix est obligatoire")
-    @DecimalMin(value = "0.01", message = "Le prix doit être supérieur à zéro")
+    @DecimalMin(value = "0.01", message = "Le prix doit être supérieur à 0.01")
+    @Digits(integer = 8, fraction = 2, message = "Le prix doit avoir au maximum 8 chiffres entiers et 2 décimales")
+    @ValidPrice
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
@@ -71,12 +76,23 @@ public class Product {
     private int stock;
 
     /**
+     * Code SKU (Stock Keeping Unit) du produit.
+     * Format attendu : 3 lettres majuscules + 3 chiffres (ex: ABC123).
+     * Validé par la contrainte custom @ValidSKU.
+     * Valeur unique en base pour éviter les doublons.
+     */
+    @ValidSKU
+    @Column(unique = true, length = 10)
+    private String sku;
+
+    /**
      * Relation ManyToOne vers Category.
      *
      * LAZY : la catégorie n'est pas chargée automatiquement avec le produit.
      * Pour la charger, utiliser JOIN FETCH dans une requête JPQL.
      * Cela évite les requêtes inutiles quand on n'a pas besoin de la catégorie.
      */
+    @NotNull(message = "La catégorie est obligatoire")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
@@ -114,6 +130,11 @@ public class Product {
         this(name, description, price, stock);
         this.category = category;
         this.supplier = supplier;
+    }
+
+    public Product(String name, String description, BigDecimal price, int stock, String sku, Category category, Supplier supplier) {
+        this(name, description, price, stock, category, supplier);
+        this.sku = sku;
     }
 
     // -------------------------------------------------------------------------
@@ -221,6 +242,14 @@ public class Product {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getSku() {
+        return sku;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku;
     }
 
     // -------------------------------------------------------------------------

@@ -12,6 +12,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -58,9 +60,10 @@ public class OrderItem {
     private Product product;
 
     /**
-     * Quantité commandée — minimum 1.
+     * Quantité commandée — minimum 1, maximum 1000.
      */
     @Min(value = 1, message = "La quantité doit être au moins 1")
+    @Max(value = 1000, message = "La quantité ne peut pas dépasser 1000")
     @Column(nullable = false)
     private int quantity;
 
@@ -70,6 +73,7 @@ public class OrderItem {
      * Ne change pas si le prix du produit évolue ensuite.
      */
     @NotNull(message = "Le prix unitaire est obligatoire")
+    @DecimalMin(value = "0.01", message = "Le prix unitaire doit être supérieur à 0.01")
     @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
 

@@ -1,13 +1,6 @@
 package com.formation.springproducts.model;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
+import com.formation.springproducts.validation.ValidDateRange;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,8 +12,21 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Entité Order (Commande)
@@ -39,6 +45,7 @@ import jakarta.validation.constraints.NotBlank;
  */
 @Entity
 @Table(name = "orders")
+@ValidDateRange
 public class Order {
 
     @Id
@@ -53,9 +60,11 @@ public class Order {
     private String orderNumber;
 
     @NotBlank(message = "Le nom du client est obligatoire")
+    @Size(min = 2, max = 100, message = "Le nom du client doit contenir entre {min} et {max} caractères")
     @Column(name = "customer_name", nullable = false, length = 200)
     private String customerName;
 
+    @NotBlank(message = "L'email du client est obligatoire")
     @Email(message = "L'email du client doit être valide")
     @Column(name = "customer_email", length = 200)
     private String customerEmail;
@@ -63,6 +72,7 @@ public class Order {
     /**
      * Statut stocké en tant que chaîne (EnumType.STRING) pour la lisibilité en base.
      */
+    @NotNull(message = "Le statut de la commande est obligatoire")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private OrderStatus status;
@@ -71,18 +81,32 @@ public class Order {
      * Montant total de la commande — calculé à partir des items via calculateTotal().
      * Stocké en base pour éviter de recalculer à chaque lecture.
      */
+    @NotNull(message = "Le montant total est obligatoire")
+    @DecimalMin(value = "0.01", message = "Le montant total doit être supérieur à 0.01")
     @Column(name = "total_amount", precision = 12, scale = 2)
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
+    @PastOrPresent(message = "La date de commande ne peut pas être dans le futur")
     @Column(name = "order_date", updatable = false)
     private LocalDateTime orderDate;
+
+    /**
+     * Date de livraison prévue (optionnelle).
+     * Si renseignée, doit être >= orderDate (validé par @ValidDateRange au niveau classe).
+     */
+    @Column(name = "delivery_date")
+    private LocalDateTime deliveryDate;
 
     /**
      * Liste des lignes de commande.
      *
      * - cascade = ALL : persist/merge/remove se propagent automatiquement aux items
      * - orphanRemoval = true : un item retiré de cette liste est supprimé en base
+     * - @NotEmpty : une commande doit avoir au moins un item
+     * - @Valid : déclenche la validation en cascade sur chaque OrderItem
      */
+    @NotEmpty(message = "Une commande doit contenir au moins un article")
+    @Valid
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
@@ -149,10 +173,7 @@ public class Order {
      * À appeler après chaque ajout / modification / suppression d'item.
      */
     public void calculateTotal() {
-        this.totalAmount = items.stream()
-                .map(OrderItem::getSubtotal)
-                .filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        this.totalAmount = items.stream().map(OrderItem::getSubtotal).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     // -------------------------------------------------------------------------
@@ -215,6 +236,14 @@ public class Order {
         this.orderDate = orderDate;
     }
 
+    public LocalDateTime getDeliveryDate() {
+        return deliveryDate;
+    }
+
+    public void setDeliveryDate(LocalDateTime deliveryDate) {
+        this.deliveryDate = deliveryDate;
+    }
+
     public List<OrderItem> getItems() {
         return items;
     }
@@ -242,12 +271,22 @@ public class Order {
 
     @Override
     public String toString() {
-        return "Order{id=" + id
-                + ", orderNumber='" + orderNumber + '\''
-                + ", customerName='" + customerName + '\''
-                + ", status=" + status
-                + ", totalAmount=" + totalAmount
-                + ", items=" + items.size()
-                + '}';
+        return (
+            "Order{id=" +
+            id +
+            ", orderNumber='" +
+            orderNumber +
+            '\'' +
+            ", customerName='" +
+            customerName +
+            '\'' +
+            ", status=" +
+            status +
+            ", totalAmount=" +
+            totalAmount +
+            ", items=" +
+            items.size() +
+            '}'
+        );
     }
 }
