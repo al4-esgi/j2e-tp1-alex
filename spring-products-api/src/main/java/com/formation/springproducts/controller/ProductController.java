@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,14 +56,25 @@ public class ProductController {
     /**
      * GET /api/products
      *
-     * Liste tous les produits — version optimisée avec JOIN FETCH (par défaut).
-     * Une seule requête SQL avec JOIN sur category et supplier.
+     * Liste les produits avec support de la pagination et des filtres.
+     *
+     * Pagination (activée quand aucun filtre n'est passé) :
+     *   ?page=0&size=10  → première page de 10 produits
+     *   ?page=1&size=5   → deuxième page de 5 produits
+     *
+     * Filtres (retournent une liste complète, sans pagination) :
+     *   ?categoryId=1    → produits d'une catégorie
+     *   ?supplierId=2    → produits d'un fournisseur
+     *   ?search=laptop   → recherche par mot-clé dans le nom
+     *   ?minPrice=10&maxPrice=100 → filtre par fourchette de prix
      *
      * @param categoryId  (optionnel) filtre par catégorie
      * @param supplierId  (optionnel) filtre par fournisseur
      * @param search      (optionnel) mot-clé dans le nom
      * @param minPrice    (optionnel) prix minimum
      * @param maxPrice    (optionnel) prix maximum
+     * @param page        numéro de page (0-based, défaut : 0)
+     * @param size        taille de page (défaut : 10, max : 100)
      */
     @GetMapping
     public ResponseEntity<?> getAllProducts(
@@ -70,24 +82,25 @@ public class ProductController {
         @RequestParam(required = false) Long supplierId,
         @RequestParam(required = false) String search,
         @RequestParam(required = false) BigDecimal minPrice,
-        @RequestParam(required = false) BigDecimal maxPrice
+        @RequestParam(required = false) BigDecimal maxPrice,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
     ) {
         try {
-            List<Product> products;
-
+            // Filtres → liste complète (la pagination n'a pas de sens sur un sous-ensemble filtré sans countQuery dédiée)
             if (categoryId != null) {
-                products = productService.getProductsByCategory(categoryId);
+                return ResponseEntity.ok(productService.getProductsByCategory(categoryId));
             } else if (supplierId != null) {
-                products = productService.getProductsBySupplier(supplierId);
+                return ResponseEntity.ok(productService.getProductsBySupplier(supplierId));
             } else if (search != null && !search.trim().isEmpty()) {
-                products = productService.searchProducts(search);
+                return ResponseEntity.ok(productService.searchProducts(search));
             } else if (minPrice != null && maxPrice != null) {
-                products = productService.getProductsByPriceRange(minPrice, maxPrice);
-            } else {
-                products = productService.getAllProductsOptimized();
+                return ResponseEntity.ok(productService.getProductsByPriceRange(minPrice, maxPrice));
             }
 
-            return ResponseEntity.ok(products);
+            // Pas de filtre → pagination
+            Page<Product> pageResult = productService.getProductsPaginated(page, size);
+            return ResponseEntity.ok(pageResult);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new ErrorMessage(e.getMessage()));
         }

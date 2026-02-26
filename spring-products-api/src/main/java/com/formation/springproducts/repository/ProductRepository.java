@@ -7,6 +7,7 @@ import com.formation.springproducts.model.Supplier;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -47,6 +48,20 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      */
     @Query("SELECT p FROM Product p JOIN FETCH p.category LEFT JOIN FETCH p.supplier")
     List<Product> findAllOptimized();
+
+    /**
+     * Récupère une page de produits avec JOIN FETCH sur category et supplier.
+     *
+     * La countQuery est obligatoire quand on combine @Query + Pageable :
+     * Spring Data a besoin d'une requête de comptage séparée pour calculer
+     * le nombre total de pages (totalElements dans l'objet Page retourné).
+     * Sans countQuery, Spring tenterait de dériver le COUNT depuis la requête
+     * principale — ce qui échoue avec JOIN FETCH.
+     *
+     * Utilisation : GET /api/products?page=0&size=10
+     */
+    @Query(value = "SELECT p FROM Product p JOIN FETCH p.category LEFT JOIN FETCH p.supplier", countQuery = "SELECT COUNT(p) FROM Product p")
+    Page<Product> findAllPaginated(Pageable pageable);
 
     // -------------------------------------------------------------------------
     // Recherches métier

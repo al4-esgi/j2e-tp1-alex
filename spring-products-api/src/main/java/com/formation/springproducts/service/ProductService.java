@@ -14,7 +14,10 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import org.hibernate.Hibernate;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -137,6 +140,30 @@ public class ProductService {
     @Transactional(readOnly = true)
     public List<Product> getAllProductsOptimized() {
         return productRepository.findAllOptimized();
+    }
+
+    /**
+     * Page de produits — pagination sur GET /api/products?page=0&size=10.
+     *
+     * Utilise une requête JPQL avec JOIN FETCH + countQuery séparée pour éviter
+     * l'erreur de dérivation de COUNT sur une requête avec JOIN FETCH.
+     *
+     * L'objet Page retourné contient :
+     *   - content       : les produits de la page courante
+     *   - totalElements : nombre total de produits en base
+     *   - totalPages    : nombre total de pages
+     *   - number        : numéro de la page courante (0-based)
+     *   - size          : taille de page demandée
+     *
+     * @param page numéro de page (0-based)
+     * @param size nombre d'éléments par page (max 100 pour éviter les abus)
+     */
+    @Transactional(readOnly = true)
+    public Page<Product> getProductsPaginated(int page, int size) {
+        if (page < 0) throw new IllegalArgumentException("Le numéro de page ne peut pas être négatif");
+        if (size < 1 || size > 100) throw new IllegalArgumentException("La taille de page doit être comprise entre 1 et 100");
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+        return productRepository.findAllPaginated(pageable);
     }
 
     /**
